@@ -1,0 +1,44 @@
+<div class="chat-container">
+  <mat-toolbar color="primary" class="chat-header">
+    <span class="header-title">ChatbotAI</span>
+
+    <div class="header-actions">
+      <button
+        mat-icon-button
+        matTooltip="New Chat"
+        (click)="startNewChat()"
+        aria-label="Start a new chat"
+      >
+        <mat-icon>add</mat-icon>
+      </button>
+
+      <app-connection-status></app-connection-status>
+    </div>
+  </mat-toolbar>
+
+  <!-- Debug Info -->
+  <div class="debug-info">
+    <p>Connection: {{ getConnectionStatusText() }}</p>
+    <p>Session ID: {{ currentSessionId() }}</p>
+    <p>Can Send: {{ canSend() ? "Yes" : "No" }}</p>
+    <p>Is Generating: {{ isGenerating() ? "Yes" : "No" }}</p>
+    <p>Has Input (from signal): {{ hasInputSignal() ? "Yes" : "No" }}</p>
+  </div>
+
+  <div class="messages-container" #messagesContainer>
+    <div *ngIf="messages().length === 0" class="empty-state">
+      <mat-icon class="empty-icon">chat</mat-icon>
+      <p>Start a conversation by typing a message below.</p>
+    </div>
+
+    <ng-container *ngFor="let message of messages(); trackBy: trackByMessageId">
+      <app-message [message]="message"></app-message>
+    </ng-container>
+
+    <div class="typing-wrapper">
+      <app-typing-indicator *ngIf="isGenerating()"></app-typing-indicator>
+    </div>
+  </div>
+
+  <app-message-input></app-message-input>
+</div>

@@ -1,0 +1,58 @@
+.message-input-container {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  gap: 8px;
+  background-color: var(--surface-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.message-input-field {
+  flex: 1;
+}
+
+textarea {
+  resize: none;
+  line-height: 1.5;
+  padding: 8px 0;
+  color: var(--on-surface-color);
+}
+
+/* Style Material form field */
+.message-input-container .mat-mdc-form-field .mdc-text-field {
+  background-color: var(--surface-color);
+}
+
+.message-input-container .mat-mdc-form-field .mdc-text-field__input {
+  color: var(--on-surface-color);
+}
+
+.message-input-container .mat-mdc-form-field .mdc-notched-outline__leading,
+.message-input-container .mat-mdc-form-field .mdc-notched-outline__notch,
+.message-input-container .mat-mdc-form-field .mdc-notched-outline__trailing {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Enhanced send button styling */
+.send-button {
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.send-button:hover {
+  background-color: var(--primary-variant-color);
+}
+
+@media (prefers-reduced-motion) {
+  .send-button {
+    transition: none;
+  }
+}
+
+/* Expand textarea input for better usability */
+.message-input-field textarea {
+  min-height: 48px !important;
+  max-height: 200px !important;
+  overflow-y: auto;
+}

@@ -1,0 +1,43 @@
+<div class="message-input-container">
+  <mat-form-field
+    *ngIf="characters.length > 0"
+    appearance="fill"
+    class="character-select-field"
+  >
+    <mat-label>Character</mat-label>
+    <mat-select [(value)]="selectedCharacter">
+      <mat-option *ngFor="let char of characters" [value]="char.id">
+        {{ char.key }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field appearance="fill" class="message-input-field">
+    <textarea
+      matInput
+      #messageInput
+      [value]="chatService.inputText()"
+      (input)="onDomInputChange($event)"
+      placeholder="Type a message..."
+      [disabled]="connectionStatus() !== ConnectionStatus.Connected"
+      (keydown.enter)="handleEnterKeyEvent($event)"
+      cdkTextareaAutosize
+      cdkAutosizeMinRows="1"
+      cdkAutosizeMaxRows="5"
+      aria-label="Message input"
+    >
+    </textarea>
+  </mat-form-field>
+
+  <button
+    mat-fab
+    [color]="isGenerating() ? 'warn' : 'primary'"
+    class="send-button"
+    [disabled]="!isGenerating() && !canSend()"
+    [@buttonTransform]="isGenerating() ? 'cancel' : 'send'"
+    [@pulse]="pulseState"
+    (click)="handleButtonClick()"
+    [attr.aria-label]="isGenerating() ? 'Cancel response' : 'Send message'"
+  >
+    <mat-icon>{{ isGenerating() ? "close" : "send" }}</mat-icon>
+  </button>
+</div>

@@ -1,0 +1,10 @@
+<div class="connection-status">
+  <mat-icon
+    [@connectionStatus]="status()"
+    [matTooltip]="getStatusText()"
+    aria-hidden="false"
+    aria-label="Connection status"
+  >
+    {{ getStatusIcon() }}
+  </mat-icon>
+</div>
