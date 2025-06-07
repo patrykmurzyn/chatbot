@@ -21,5 +21,10 @@ namespace ChatbotAI.API
         /// Use the MCP ShapeshifterService for streaming instead of LoremIpsumService.
         /// </summary>
         public bool UseMcpService { get; set; } = true;
+
+        /// <summary>
+        /// Base address for the MCP Shapeshifter service.
+        /// </summary>
+        public string McpBaseUrl { get; set; } = "http://localhost:3000";
     }
 } 
