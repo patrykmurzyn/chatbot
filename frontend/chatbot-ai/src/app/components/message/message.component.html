@@ -35,7 +35,7 @@
           <div *ngIf="!message.isPartial" class="rating-buttons">
             <button
               mat-icon-button
-              [color]="message.rating?.isPositive ? 'accent' : ''"
+              [color]="message.rating ? 'accent' : ''"
               (click)="rateMessage(true)"
               [@rating]="getAnimationState(true)"
               matTooltip="Thumbs up"
@@ -46,7 +46,7 @@
 
             <button
               mat-icon-button
-              [color]="message.rating?.isPositive === false ? 'warn' : ''"
+              [color]="message.rating === false ? 'warn' : ''"
               (click)="rateMessage(false)"
               [@rating]="getAnimationState(false)"
               matTooltip="Thumbs down"

@@ -127,9 +127,8 @@ export class MessageComponent implements OnInit, OnChanges {
   }
 
   getAnimationState(isPositive: boolean): string {
-    if (!this.message.rating) return 'inactive';
-    return this.message.rating.isPositive === isPositive
-      ? 'active'
-      : 'inactive';
+    if (this.message.rating === undefined || this.message.rating === null)
+      return 'inactive';
+    return this.message.rating === isPositive ? 'active' : 'inactive';
   }
 }

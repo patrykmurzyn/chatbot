@@ -542,16 +542,7 @@ export class ChatService {
         // Update message in local state
         this.updateState({
           messages: this.messages().map((msg) =>
-            msg.id === messageId
-              ? {
-                  ...msg,
-                  rating: {
-                    isPositive,
-                    messageId,
-                    createdAt: new Date(),
-                  } as MessageRating,
-                }
-              : msg
+            msg.id === messageId ? { ...msg, rating: isPositive } : msg
           ),
         });
       } else {

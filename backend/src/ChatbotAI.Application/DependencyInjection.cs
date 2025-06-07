@@ -11,6 +11,9 @@ namespace ChatbotAI.Application
             // Register MediatR
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
+            services.AddScoped<ChatbotAI.Application.Services.IMessageService, ChatbotAI.Application.Services.MessageService>();
+            services.AddScoped<ChatbotAI.Application.Services.ISessionService, ChatbotAI.Application.Services.SessionService>();
+
             return services;
         }
     }

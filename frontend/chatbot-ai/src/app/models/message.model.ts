@@ -13,5 +13,5 @@ export interface Message {
   isFromUser: boolean;
   isPartial: boolean;
   createdAt?: Date;
-  rating?: MessageRating;
+  rating?: boolean | null;
 }

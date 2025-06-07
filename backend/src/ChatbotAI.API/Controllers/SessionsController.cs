@@ -1,10 +1,8 @@
-using ChatbotAI.Domain.Models;
-using ChatbotAI.Infrastructure.Data;
+using ChatbotAI.Application.Services;
+using ChatbotAI.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace ChatbotAI.API.Controllers
@@ -13,126 +11,87 @@ namespace ChatbotAI.API.Controllers
     [ApiController]
     public class SessionsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ISessionService _sessionService;
+        private readonly IMessageService _messageService;
 
-        public SessionsController(ApplicationDbContext context)
+        public SessionsController(ISessionService sessionService, IMessageService messageService)
         {
-            _context = context;
+            _sessionService = sessionService;
+            _messageService = messageService;
         }
 
         // POST: api/v1/sessions
         [HttpPost]
-        public async Task<ActionResult<Session>> CreateSession()
+        public async Task<ActionResult> CreateSession()
         {
-            var session = new Session
-            {
-                Id = Guid.NewGuid(),
-                CreatedAt = DateTime.UtcNow,
-                LastActivity = DateTime.UtcNow
-            };
-            
-            // Add metadata
-            session.Metadata["UserAgent"] = Request.Headers["User-Agent"].ToString();
-            session.Metadata["IP"] = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
-
-            _context.Sessions.Add(session);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetSession), new { id = session.Id }, new { sessionId = session.Id });
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            var sessionId = await _sessionService.CreateSessionAsync(userAgent, ip);
+            return CreatedAtAction(nameof(GetSession), new { id = sessionId }, new { sessionId });
         }
 
         // GET: api/v1/sessions/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Session>> GetSession(Guid id)
+        public async Task<ActionResult<SessionDto>> GetSession(Guid id)
         {
-            var session = await _context.Sessions
-                .Include(s => s.Messages)
-                .FirstOrDefaultAsync(s => s.Id == id);
-
-            if (session == null)
+            try
+            {
+                var sessionDto = await _sessionService.GetSessionAsync(id);
+                return Ok(sessionDto);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            // Ensure messages are in chronological order
-            session.Messages = session.Messages.OrderBy(m => m.CreatedAt).ToList();
-
-            // Update last activity timestamp
-            session.LastActivity = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            return session;
         }
 
         // GET: api/v1/sessions/{sessionId}/messages
         [HttpGet("{sessionId}/messages")]
-        public async Task<ActionResult<IEnumerable<Message>>> GetMessages(Guid sessionId)
+        public async Task<ActionResult<IEnumerable<MessageDto>>> GetMessages(Guid sessionId)
         {
-            // Check session existence
-            var exists = await _context.Sessions.AnyAsync(s => s.Id == sessionId);
-            if (!exists)
+            try
+            {
+                var messages = await _messageService.GetMessagesBySessionAsync(sessionId);
+                return Ok(messages);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            // Fetch and return messages in chronological order
-            var messages = await _context.Messages
-                .Where(m => m.SessionId == sessionId)
-                .OrderBy(m => m.CreatedAt)
-                .ToListAsync();
-
-            return Ok(messages);
         }
 
         // POST: api/v1/sessions/{sessionId}/messages
         [HttpPost("{sessionId}/messages")]
-        public async Task<ActionResult<Message>> SendMessage(Guid sessionId, [FromBody] SendMessageRequest request)
+        public async Task<ActionResult<MessageDto>> SendMessage(Guid sessionId, [FromBody] SendMessageRequest request)
         {
-            var session = await _context.Sessions.FindAsync(sessionId);
-
-            if (session == null)
+            try
+            {
+                var messageDto = await _messageService.SendMessageAsync(sessionId, request.Content, request.CharacterId);
+                return CreatedAtAction(nameof(GetMessage), new { id = messageDto.Id }, messageDto);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            // Validate characterId exists
-            if (!await _context.Characters.AnyAsync(c => c.Id == request.CharacterId))
+            catch (ArgumentException ex)
             {
-                return BadRequest($"Character with ID '{request.CharacterId}' not found.");
+                return BadRequest(ex.Message);
             }
-            var message = new Message
-            {
-                Id = Guid.NewGuid(),
-                SessionId = sessionId,
-                Content = request.Content,
-                IsFromUser = true,
-                IsPartial = false,
-                CreatedAt = DateTime.UtcNow,
-                CharacterId = request.CharacterId
-            };
-
-            _context.Messages.Add(message);
-            
-            // Update session's last activity
-            session.LastActivity = DateTime.UtcNow;
-            
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetMessage), new { id = message.Id }, message);
         }
 
         // GET: api/v1/messages/{id}
         [HttpGet("~/api/v1/messages/{id}")]
-        public async Task<ActionResult<Message>> GetMessage(Guid id)
+        public async Task<ActionResult<MessageDto>> GetMessage(Guid id)
         {
-            var message = await _context.Messages.FindAsync(id);
-
-            if (message == null)
+            try
+            {
+                var messageDto = await _messageService.GetMessageByIdAsync(id);
+                return Ok(messageDto);
+            }
+            catch (KeyNotFoundException)
             {
                 return NotFound();
             }
-
-            return message;
         }
 
         // PUT: api/v1/messages/{messageId}/rating
@@ -141,44 +100,15 @@ namespace ChatbotAI.API.Controllers
         {
             try
             {
-                // First, check if the message exists
-                var messageExists = await _context.Messages.AnyAsync(m => m.Id == messageId);
-                if (!messageExists)
-                {
-                    return NotFound($"Message with ID {messageId} not found.");
-                }
-
-                // Check if a rating already exists
-                var existingRating = await _context.Set<MessageRating>()
-                    .FirstOrDefaultAsync(r => r.MessageId == messageId);
-
-                if (existingRating != null)
-                {
-                    // Update existing rating
-                    existingRating.IsPositive = request.IsPositive;
-                    existingRating.UpdatedAt = DateTime.UtcNow;
-                    _context.Update(existingRating);
-                }
-                else
-                {
-                    // Create new rating
-                    var newRating = new MessageRating
-                    {
-                        Id = Guid.NewGuid(),
-                        MessageId = messageId,
-                        IsPositive = request.IsPositive,
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _context.Add(newRating);
-                }
-
-                await _context.SaveChangesAsync();
+                await _messageService.RateMessageAsync(messageId, request.IsPositive);
                 return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
             }
             catch (Exception ex)
             {
-                // Log the exception
-                Console.WriteLine($"Error rating message {messageId}: {ex}");
                 return StatusCode(500, new { error = "Failed to rate message", details = ex.Message });
             }
         }

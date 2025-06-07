@@ -95,11 +95,6 @@
   display: flex;
   justify-content: space-between;
   margin-top: 8px;
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
-}
-
-.message-card:hover .message-actions {
   opacity: 1;
 }
 
