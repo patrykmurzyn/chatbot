@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ChatbotAI.Domain.DTOs;
 
 namespace ChatbotAI.API.Controllers
 {
@@ -112,23 +113,5 @@ namespace ChatbotAI.API.Controllers
                 return StatusCode(500, new { error = "Failed to rate message", details = ex.Message });
             }
         }
-    }
-
-    public class SendMessageRequest
-    {
-        /// <summary>
-        /// The content of the user message.
-        /// </summary>
-        public required string Content { get; set; }
-
-        /// <summary>
-        /// The ID of the character selected by the user.
-        /// </summary>
-        public required int CharacterId { get; set; }
-    }
-
-    public class RateMessageRequest
-    {
-        public bool IsPositive { get; set; }
     }
 } 

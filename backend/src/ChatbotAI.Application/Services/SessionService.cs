@@ -38,7 +38,6 @@ namespace ChatbotAI.Application.Services
             if (session == null)
                 throw new KeyNotFoundException($"Session with ID {sessionId} not found.");
 
-            session.Messages = session.Messages.OrderBy(m => m.CreatedAt).ToList();
             session.LastActivity = DateTime.UtcNow;
             await _unitOfWork.Sessions.UpdateAsync(session);
             await _unitOfWork.SaveChangesAsync();
@@ -48,18 +47,7 @@ namespace ChatbotAI.Application.Services
                 Id = session.Id,
                 CreatedAt = session.CreatedAt,
                 LastActivity = session.LastActivity,
-                Metadata = session.Metadata,
-                Messages = session.Messages.Select(m => new MessageDto
-                {
-                    Id = m.Id,
-                    SessionId = m.SessionId,
-                    Content = m.Content,
-                    IsFromUser = m.IsFromUser,
-                    IsPartial = m.IsPartial,
-                    CreatedAt = m.CreatedAt,
-                    CharacterId = m.CharacterId,
-                    Rating = m.Rating?.IsPositive
-                })
+                Metadata = session.Metadata
             };
         }
     }

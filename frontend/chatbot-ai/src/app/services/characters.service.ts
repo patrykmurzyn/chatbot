@@ -9,7 +9,7 @@ import { CharacterDto } from '../models/character.model';
   providedIn: 'root',
 })
 export class CharactersService {
-  private readonly API_URL = `${environment.apiUrl}/api/characters`;
+  private readonly API_URL = `${environment.apiUrl}/api/v1/characters`;
 
   constructor(private http: HttpClient) {}
 

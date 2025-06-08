@@ -12,7 +12,7 @@ namespace ChatbotAI.Domain.Models
         public DateTime CreatedAt { get; set; }
 
         public int CharacterId { get; set; }
-        public Character Character { get; set; }
+        public Character Character { get; set; } = null!;
 
         public MessageRating? Rating { get; set; }
 

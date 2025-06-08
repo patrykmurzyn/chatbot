@@ -1,43 +1,27 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ChatbotAI.Infrastructure.Data;
+using ChatbotAI.Domain.DTOs;
+using ChatbotAI.Domain.Repositories;
 
 namespace ChatbotAI.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class CharactersController : ControllerBase
     {
-        private readonly ApplicationDbContext _dbContext;
+        private readonly ICharacterRepository _repo;
 
-        public CharactersController(ApplicationDbContext dbContext)
+        public CharactersController(ICharacterRepository repo)
         {
-            _dbContext = dbContext;
+            _repo = repo;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CharacterDto>>> Get()
         {
-            var list = await _dbContext.Characters
-                .Select(c => new CharacterDto { Id = c.Id, Key = c.Key })
-                .ToListAsync();
+            var list = await _repo.GetAllAsync();
             return Ok(list);
         }
-    }
-
-    public class CharacterDto
-    {
-        /// <summary>
-        /// Identifier of the character.
-        /// </summary>
-        public int Id { get; set; }
-
-        /// <summary>
-        /// Key (name) of the character.
-        /// </summary>
-        public string Key { get; set; } = null!;
     }
 } 
